@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/strichliste/api")
+@RequestMapping("/strichlisten/api")
 public class StrichlistenController {
 
     private Strichliste strichliste;
