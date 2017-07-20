@@ -6,8 +6,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -15,15 +14,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 
 @Slf4j
-public class RequestLoggerFilter extends OncePerRequestFilter {
+public class RequestLoggerFilter implements Filter {
+
     @Override
-    protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
-        ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(httpServletRequest);
-        ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(httpServletResponse);
+    public void init(FilterConfig filterConfig) throws ServletException {
 
-        filterChain.doFilter(requestWrapper, responseWrapper);
+    }
 
-        if (logger.isInfoEnabled()) {
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper((HttpServletRequest) request);
+        ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper((HttpServletResponse) response);
+
+        chain.doFilter(requestWrapper, responseWrapper);
+
+        if (log.isInfoEnabled()) {
             StringBuilder sb = new StringBuilder();
             sb.append(requestWrapper.getMethod()).append(" ").append(requestWrapper.getRequestURI()).append(" ").append(requestWrapper.getProtocol()).append("\n");
             Enumeration<String> headerNames = requestWrapper.getHeaderNames();
@@ -47,7 +52,15 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
                 sb.append("--- Binary Content ---");
             }
 
-            logger.info(sb.toString());
+            log.info(sb.toString());
         }
+
+        responseWrapper.copyBodyToResponse();
+        responseWrapper.flushBuffer();
+    }
+
+    @Override
+    public void destroy() {
+
     }
 }
