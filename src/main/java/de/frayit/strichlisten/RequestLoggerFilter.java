@@ -2,7 +2,6 @@ package de.frayit.strichlisten;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
@@ -28,35 +27,45 @@ public class RequestLoggerFilter implements Filter {
 
         chain.doFilter(requestWrapper, responseWrapper);
 
-        if (log.isInfoEnabled()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(requestWrapper.getMethod()).append(" ").append(requestWrapper.getRequestURI()).append(" ").append(requestWrapper.getProtocol()).append("\n");
-            Enumeration<String> headerNames = requestWrapper.getHeaderNames();
-            while (headerNames.hasMoreElements()) {
-                String headerName = headerNames.nextElement();
-                String headerValue = requestWrapper.getHeader(headerName);
-                sb.append(headerName).append(": ").append(headerValue).append("\n");
-            }
-            sb.append("\n");
-
-            String contentTypeHeader = requestWrapper.getHeader("Content-Type");
-            MediaType contentType = contentTypeHeader == null ? null : MediaType.parseMediaType(contentTypeHeader);
-            boolean textualContentType = contentType != null && (contentType.getType().equals("text")
-                    || contentType.isCompatibleWith(MediaType.APPLICATION_JSON)
-                    || contentType.isCompatibleWith(MediaType.APPLICATION_XML));
-
-            if (textualContentType) {
-                String content = new String(requestWrapper.getContentAsByteArray(), contentType.getCharset() == null ? StandardCharsets.ISO_8859_1 : contentType.getCharset());
-                sb.append(content).append("\n");
-            } else {
-                sb.append("--- Binary Content ---");
-            }
-
-            log.info(sb.toString());
-        }
-
         responseWrapper.copyBodyToResponse();
         responseWrapper.flushBuffer();
+
+        if (log.isInfoEnabled()) {
+            logRequest(requestWrapper);
+            logResponse(responseWrapper);
+        }
+    }
+
+    private void logRequest(ContentCachingRequestWrapper requestWrapper) {
+        // log request
+        StringBuilder sb = new StringBuilder();
+        sb.append(requestWrapper.getMethod()).append(" ").append(requestWrapper.getRequestURI()).append(" ").append(requestWrapper.getProtocol()).append("\n");
+        Enumeration<String> headerNames = requestWrapper.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            String headerValue = requestWrapper.getHeader(headerName);
+            sb.append(headerName).append(": ").append(headerValue).append("\n");
+        }
+        sb.append("\n");
+
+        String contentTypeHeader = requestWrapper.getHeader("Content-Type");
+        MediaType contentType = contentTypeHeader == null ? null : MediaType.parseMediaType(contentTypeHeader);
+        boolean textualContentType = contentType != null && (contentType.getType().equals("text")
+                || contentType.isCompatibleWith(MediaType.APPLICATION_JSON)
+                || contentType.isCompatibleWith(MediaType.APPLICATION_XML));
+
+        if (textualContentType) {
+            String content = new String(requestWrapper.getContentAsByteArray(), contentType.getCharset() == null ? StandardCharsets.ISO_8859_1 : contentType.getCharset());
+            sb.append(content).append("\n");
+        } else {
+            sb.append("--- Binary Content ---");
+        }
+
+        log.info(sb.toString());
+    }
+
+    private void logResponse(ContentCachingResponseWrapper responseWrapper) {
+
     }
 
     @Override

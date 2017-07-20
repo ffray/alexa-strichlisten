@@ -41,7 +41,7 @@ public class StrichlistenSpeechlet implements SpeechletV2 {
 
         SpeechletResponse response = new SpeechletResponse();
         PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
-        speech.setText(name + " hat jetzt " + striche + " auf der Strichliste");
+        speech.setText(name.getValue() + " hat jetzt " + striche + " auf der Strichliste");
         response.setOutputSpeech(speech);
 
         return response;
@@ -64,7 +64,7 @@ public class StrichlistenSpeechlet implements SpeechletV2 {
 
             SpeechletResponse response = new SpeechletResponse();
             PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
-            speech.setText(name + " hat " + striche + " auf der Strichliste");
+            speech.setText(name.getValue() + " hat " + striche + " auf der Strichliste");
             response.setOutputSpeech(speech);
 
             return response;
